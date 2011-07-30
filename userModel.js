@@ -1,44 +1,64 @@
-var userCounter = 1;
+var Db = require('mongodb').Db;
+var Connection = require('mongodb').Connection;
+var Server = require('mongodb').Server;
+var BSON = require('mongodb').BSON;
+var ObjectID = require('mongodb').ObjectID;
 
-UserProvider = function(){};
-UserProvider.prototype.dummyData = [];
-
-UserProvider.prototype.findAll = function(callback) {
-  callback( null, this.dummyData )
+UserProvider = function(host, port) {
+  this.db= new Db('itoldyou', new Server(host, port, {auto_reconnect: true}, {}));
+  this.db.open(function(){});
 };
 
+
+UserProvider.prototype.getCollection= function(callback) {
+  this.db.collection('ity_user', function(error, user_collection) {
+    if( error ) callback(error);
+    else callback(null, user_collection);
+  });
+};
+
+UserProvider.prototype.findAll = function(callback) {
+    this.getCollection(function(error, user_collection) {
+      if( error ) callback(error)
+      else {
+        user_collection.find().toArray(function(error, results) {
+          if( error ) callback(error)
+          else callback(null, results)
+        });
+      }
+    });
+};
+
+
 UserProvider.prototype.findById = function(id, callback) {
-  var result = null;
-  for(var i =0;i<this.dummyData.length;i++) {
-    if( this.dummyData[i]._id == id ) {
-      result = this.dummyData[i];
-      break;
-    }
-  }
-  callback(null, result);
+    this.getCollection(function(error, user_collection) {
+      if( error ) callback(error)
+      else {
+        user_collection.findOne({_id: user_collection.db.bson_serializer.ObjectID.createFromHexString(id)}, function(error, result) {
+          if( error ) callback(error)
+          else callback(null, result)
+        });
+      }
+    });
 };
 
 UserProvider.prototype.save = function(users, callback) {
-  var user = null;
+    this.getCollection(function(error, user_collection) {
+      if( error ) callback(error)
+      else {
+        if( typeof(users.length)=="undefined")
+          users = [users];
 
-  if( typeof(users.length)=="undefined")
-    articles = [users];
+        for( var i =0;i< users.length;i++ ) {
+          user = users[i];
+          user.created_at = new Date();
+        }
 
-  for( var i =0;i< users.length;i++ ) {
-    user = users[i];
-    user._id = userCounter++;
-    user.created_at = new Date();
-
-    this.dummyData[this.dummyData.length]= user;
-  }
-  callback(null, users);
+        user_collection.insert(users, function() {
+          callback(null, users);
+        });
+      }
+    });
 };
-
-/* Lets bootstrap with dummy data */
-new UserProvider().save([
-  {firstname: 'Amel', lastname: 'HAFSA', email:'hafsa.amel@gmail.com'},
-  {firstname: 'Amel1', lastname: 'HAFSA1', email:'hafsa.amel@gmail.com1'},
-  {firstname: 'Amel2', lastname: 'HAFSA2', email:'hafsa.amel@gmail.com2'}
-], function(error, users){});
 
 exports.UserProvider = UserProvider;
