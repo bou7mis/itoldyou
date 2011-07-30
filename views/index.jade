@@ -1,0 +1,8 @@
+h1= title
+#users
+    - each user in users
+      div.user
+        div.created_at= user.created_at
+        div.firstname 
+            a(href="http://itoldyou.bou7mis.cloud9ide.com/"+user._id)!= user.firstname
+        div.body= user.lastname
