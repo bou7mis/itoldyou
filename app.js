@@ -1,5 +1,5 @@
 var express = require('express');
-var ArticleProvider = require('./userModel').ArticleProvider;
+var UserProvider = require('./userModel').UserProvider;
 
 var app = module.exports = express.createServer();
 
@@ -41,7 +41,7 @@ app.get('/new', function(req, res) {
 });
 
 app.post('/new', function(req, res){
-    articleProvider.save({
+    userProvider.save({
         firstname: req.param('firstname'),
         lastname: req.param('lastname'),
         email: req.param('email')
