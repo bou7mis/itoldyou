@@ -21,7 +21,7 @@ app.configure('production', function(){
   app.use(express.errorHandler());
 });
 
-var userProvider= new UserProvider();
+var userProvider= new UserProvider("mongodb://bou7mis:xxxxx@staff.mongohq.com:10063/itoldyou", 10063);
 
 app.get('/', function(req, res){
   userProvider.findAll(function(error, docs){
